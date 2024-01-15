@@ -27,7 +27,7 @@ class CoroutineExample {
                 println("starkbank = ${transactionsStarkbank.count()}, itau = ${transactionsToItau.count()}")
             }
         } catch (e: Exception) {
-            println("Error occurred while processing transaction for customer")
+            println("Error occurred while processing transactions")
         }
     }
 
@@ -51,23 +51,21 @@ class CoroutineExample {
         return names.shuffled().first()
     }
 
-    private suspend fun doOperationSplitStarkbank(transactions: List<CustomerResponse>): String {
+    private suspend fun doOperationSplitStarkbank(transactions: List<CustomerResponse>): List<String> {
         println("Run Split Starkbank")
-        val result = StringBuffer()
-        result.append("STARKBANK: ")
-        transactions.forEach { result.append(it.name+",") }
+        val result: MutableList<String> = mutableListOf()
+        transactions.forEach { result.add(it.name) }
         delay(1000L)
         println("Finished Split Starkbank")
-        return result.toString()
+        return result.toList()
     }
 
-    private suspend fun doOperationSplitItau(transactions: List<CustomerResponse>): String {
+    private suspend fun doOperationSplitItau(transactions: List<CustomerResponse>): List<String> {
         println("Run Split Itau")
-        val result = StringBuffer()
-        result.append("ITAU: ")
-        transactions.forEach { result.append(it.name+",") }
+        val result: MutableList<String> = mutableListOf()
+        transactions.forEach { result.add(it.name) }
         println("Finished Split ITAU")
-        return result.toString()
+        return result.toList()
     }
 }
 
