@@ -1,12 +1,13 @@
 package kotlincoroutine
 
-import java.util.UUID
+import kotlin.random.Random
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 
 
-class CoroutineExample {
+class CoroutineExample(private val aggregateService: AggregateService = AggregateService()) {
 
     private val customerList = generateTestData(1000000)
 
@@ -24,7 +25,7 @@ class CoroutineExample {
                 val transactionsStarkbank = transactionsStarkbankDeferred.await()
                 val transactionsToItau = transactionsToItauDeferred.await()
 
-                println("starkbank = ${transactionsStarkbank.count()}, itau = ${transactionsToItau.count()}")
+                println("starkbank sum = ${(transactionsStarkbank.toDouble()/100)}, itau count names = ${transactionsToItau.count()}")
             }
         } catch (e: Exception) {
             println("Error occurred while processing transactions")
@@ -35,7 +36,7 @@ class CoroutineExample {
         val testData = mutableListOf<CustomerResponse>()
 
         repeat(numberOfEntries) {
-            testData.add(CustomerResponse(name = generateRandomName(), paymentMethod = randomPaymentMethod()))
+            testData.add(CustomerResponse(name = generateRandomName(), value = Random.nextLong(1000), paymentMethod = randomPaymentMethod()))
         }
 
         return testData
@@ -51,32 +52,19 @@ class CoroutineExample {
         return names.shuffled().first()
     }
 
-    private suspend fun doOperationSplitStarkbank(transactions: List<CustomerResponse>): List<String> {
+    private suspend fun doOperationSplitStarkbank(transactions: List<CustomerResponse>): Long {
         println("Run Split Starkbank")
-        val result: MutableList<String> = mutableListOf()
-        transactions.forEach { result.add(it.name) }
         delay(1000L)
+        val result = aggregateService.aggregateValues(transactions)
         println("Finished Split Starkbank")
-        return result.toList()
+        return result
     }
 
     private suspend fun doOperationSplitItau(transactions: List<CustomerResponse>): List<String> {
         println("Run Split Itau")
-        val result: MutableList<String> = mutableListOf()
-        transactions.forEach { result.add(it.name) }
+        yield()
+        val result = aggregateService.aggregateNames(transactions)
         println("Finished Split ITAU")
         return result.toList()
     }
-}
-
-data class CustomerResponse(
-    val id: UUID = UUID.randomUUID(),
-    val name: String,
-    val paymentMethod: PaymentMethodEnum = PaymentMethodEnum.PIX
-)
-
-enum class PaymentMethodEnum {
-    PIX,
-    CREDIT,
-    DEBIT
 }
